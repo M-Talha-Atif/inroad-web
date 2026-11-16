@@ -79,6 +79,11 @@ export type CareerArcRecognition = components["schemas"]["CareerArcRecognition"]
 export type CareerArcParseRun = components["schemas"]["CareerArcParseRun"];
 export type CareerArcParseResult = components["schemas"]["CareerArcParseResult"];
 export type CareerArcWarning = components["schemas"]["ParseWarning"];
+export type AssistSession = components["schemas"]["AiAssistSessionOut"];
+export type AssistSessionCreate = components["schemas"]["AiAssistSessionCreate"];
+export type AssistTurn = components["schemas"]["AiAssistTurnOut"];
+export type AssistResult = components["schemas"]["AiAssistResultOut"];
+export type AssistRecipe = AssistSessionCreate["recipe"] & string;
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -153,6 +158,7 @@ const AUTH_UNREACHABLE = "Could not reach the auth service.";
 const PROFILE_UNREACHABLE = "Could not reach the profile service.";
 const RESUME_UNREACHABLE = "Could not reach the resume service.";
 const CAREER_ARC_UNREACHABLE = "Could not reach the career arc service.";
+const ASSIST_UNREACHABLE = "Could not reach the coach.";
 
 function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
@@ -1111,6 +1117,82 @@ export async function saveCareerArc(
   });
 
   return unwrap(result, CAREER_ARC_UNREACHABLE);
+}
+
+// --- ai assist (guided interviews) ---
+
+export async function startAssistSession(
+  body: AssistSessionCreate,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AssistSession> {
+  const result = await client.POST("/api/ai-assist/sessions", {
+    body,
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, ASSIST_UNREACHABLE);
+}
+
+export async function fetchAssistSession(
+  sessionId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AssistSession> {
+  const result = await client.GET("/api/ai-assist/sessions/{session_id}", {
+    params: { path: { session_id: sessionId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, ASSIST_UNREACHABLE);
+}
+
+/** Throws ApiError with status 404 when there is no open session. */
+export async function fetchActiveAssistSession(
+  recipe: AssistRecipe,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AssistSession> {
+  const result = await client.GET("/api/ai-assist/sessions/active", {
+    params: { query: { recipe } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, ASSIST_UNREACHABLE);
+}
+
+/** Sending the same clientTurnId again returns the stored result. */
+export async function submitAssistTurn(
+  sessionId: string,
+  turn: { clientTurnId: string; answer: string },
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AssistTurn> {
+  const result = await client.POST("/api/ai-assist/sessions/{session_id}/turns", {
+    params: { path: { session_id: sessionId } },
+    body: { client_turn_id: turn.clientTurnId, answer: turn.answer },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, ASSIST_UNREACHABLE);
+}
+
+export async function finishAssistSession(
+  sessionId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AssistResult> {
+  const result = await client.POST("/api/ai-assist/sessions/{session_id}/finish", {
+    params: { path: { session_id: sessionId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, ASSIST_UNREACHABLE);
 }
 
 // --- connections ---

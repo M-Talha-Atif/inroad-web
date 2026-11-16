@@ -848,6 +848,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai-assist/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Session
+         * @description Starts a session and returns the first question. An open session for
+         *     the same recipe is closed first: one at a time per person.
+         */
+        post: operations["start_session_api_ai_assist_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assist/sessions/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Active Session */
+        get: operations["get_active_session_api_ai_assist_sessions_active_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assist/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session */
+        get: operations["get_session_api_ai_assist_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assist/sessions/{session_id}/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Turn
+         * @description Sending the same client_turn_id again returns the stored result and
+         *     makes no second model call.
+         */
+        post: operations["submit_turn_api_ai_assist_sessions__session_id__turns_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assist/sessions/{session_id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finish Session
+         * @description Returns the finished card. Nothing is saved to the profile.
+         */
+        post: operations["finish_session_api_ai_assist_sessions__session_id__finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/connections": {
         parameters: {
             query?: never;
@@ -1073,6 +1169,148 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AiAssistHistoryTurn */
+        AiAssistHistoryTurn: {
+            /** Turn No */
+            turn_no: number;
+            /** Target Field */
+            target_field: string;
+            /** Question */
+            question: string | null;
+            /** Answer */
+            answer: string | null;
+            /** Status */
+            status: string;
+        };
+        /** AiAssistPatch */
+        AiAssistPatch: {
+            /** Field */
+            field: string;
+            /** Value */
+            value: string;
+            /** Quote */
+            quote: string;
+        };
+        /** AiAssistProgress */
+        AiAssistProgress: {
+            /** Filled */
+            filled: number;
+            /** Total */
+            total: number;
+            /** Required Done */
+            required_done: boolean;
+        };
+        /**
+         * AiAssistResultOut
+         * @description The finished card. The caller decides what it becomes; the coach
+         *     saves nothing to the profile.
+         */
+        AiAssistResultOut: {
+            /** Recipe */
+            recipe: string;
+            /** Title */
+            title: string;
+            /** Fields */
+            fields: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * AiAssistSeed
+         * @description What the person already wrote about this piece of work, from the
+         *     resume read or the role they picked. Nothing else about them is sent.
+         */
+        AiAssistSeed: {
+            /** Organization */
+            organization?: string | null;
+            /** Role */
+            role?: string | null;
+            /** Dates */
+            dates?: string | null;
+            /** Bullets */
+            bullets?: string[];
+        };
+        /** AiAssistSessionCreate */
+        AiAssistSessionCreate: {
+            /**
+             * Recipe
+             * @default career_story
+             * @constant
+             */
+            recipe: "career_story";
+            seed?: components["schemas"]["AiAssistSeed"];
+        };
+        /** AiAssistSessionOut */
+        AiAssistSessionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Recipe */
+            recipe: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "finished" | "expired";
+            seed: components["schemas"]["AiAssistSeed"];
+            /** Question */
+            question: string;
+            /** Quick Replies */
+            quick_replies: string[];
+            /** Card */
+            card: {
+                [key: string]: string;
+            };
+            progress: components["schemas"]["AiAssistProgress"];
+            /** Turns */
+            turns: components["schemas"]["AiAssistHistoryTurn"][];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Max Turns */
+            max_turns: number;
+        };
+        /** AiAssistTurnCreate */
+        AiAssistTurnCreate: {
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+            /** Answer */
+            answer: string;
+        };
+        /** AiAssistTurnOut */
+        AiAssistTurnOut: {
+            /** Turn No */
+            turn_no: number;
+            /** Question */
+            question: string;
+            /** Quick Replies */
+            quick_replies: string[];
+            /** Patch */
+            patch: components["schemas"]["AiAssistPatch"][];
+            /** Warnings */
+            warnings: components["schemas"]["AiAssistWarning"][];
+            progress: components["schemas"]["AiAssistProgress"];
+            /** Card */
+            card: {
+                [key: string]: string;
+            };
+            /** Finished */
+            finished: boolean;
+        };
+        /** AiAssistWarning */
+        AiAssistWarning: {
+            /** Field */
+            field: string;
+            /** Reason */
+            reason: string;
+        };
         /**
          * ApplyUrlState
          * @description How far a posting's apply link has been shown to work.
@@ -4879,6 +5117,219 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CareerArcDocument"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_session_api_ai_assist_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiAssistSessionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAssistSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_active_session_api_ai_assist_sessions_active_get: {
+        parameters: {
+            query?: {
+                recipe?: "career_story";
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAssistSessionOut"];
+                };
+            };
+            /** @description No such session for this user. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_session_api_ai_assist_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAssistSessionOut"];
+                };
+            };
+            /** @description No such session for this user. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_turn_api_ai_assist_sessions__session_id__turns_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiAssistTurnCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAssistTurnOut"];
+                };
+            };
+            /** @description No such session for this user. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The turn is still being processed, or the session is over. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The model could not answer. The answer is saved; send it again. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    finish_session_api_ai_assist_sessions__session_id__finish_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAssistResultOut"];
+                };
+            };
+            /** @description No such session for this user. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
