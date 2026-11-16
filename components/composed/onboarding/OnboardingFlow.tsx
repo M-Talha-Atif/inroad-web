@@ -248,6 +248,10 @@ export function OnboardingFlow() {
               onChange={(careerArc, careerArcWarnings) =>
                 setForm((prev) => ({ ...prev, careerArc, careerArcWarnings }))
               }
+              coach={form.coach}
+              onCoachChange={(update) =>
+                setForm((prev) => ({ ...prev, coach: update(prev.coach) }))
+              }
               onNext={next}
               onBack={onBack}
             />

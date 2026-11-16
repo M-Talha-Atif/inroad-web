@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { CareerCoach } from "@/components/composed/career-arc/CareerCoach";
 import { CareerArcReadProgress } from "@/components/composed/career-arc/CareerArcReadProgress";
 import { CareerArcReview } from "@/components/composed/career-arc/CareerArcReview";
 import { CareerArcSummary } from "@/components/composed/career-arc/CareerArcSummary";
@@ -13,6 +14,7 @@ import { FileUpload } from "@/components/ui/FileUpload";
 import { Notice } from "@/components/ui/Notice";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import type { CareerArcDocument, CareerArcWarning } from "@/lib/api-client/client";
+import type { AssistDraft } from "@/lib/assist";
 import {
   CAREER_ARC_ACCEPT,
   CAREER_ARC_FORMATS_HINT,
@@ -22,6 +24,7 @@ import {
   untitledStories,
   wantsTemplate,
 } from "@/lib/career-arc";
+import { addCoachStory } from "@/lib/career-coach";
 import { plural } from "@/lib/format";
 
 import { StepFooter } from "./StepFooter";
@@ -33,18 +36,34 @@ export function CareerArcScreen({
   careerArc,
   warnings,
   onChange,
+  coach,
+  onCoachChange,
   onNext,
   onBack,
 }: {
   careerArc: CareerArcDocument | null;
   warnings: CareerArcWarning[];
   onChange: (careerArc: CareerArcDocument | null, warnings: CareerArcWarning[]) => void;
+  coach: AssistDraft;
+  onCoachChange: (update: (previous: AssistDraft) => AssistDraft) => void;
   onNext: () => void;
   onBack?: () => void;
 }) {
   const [mode, setMode] = useState<Mode>("choose");
   const [editing, setEditing] = useState(false);
+  const [coaching, setCoaching] = useState(false);
   const upload = useCareerArcUpload(({ document, warnings: found }) => onChange(document, found));
+
+  const coachPanel = (
+    <CareerCoach
+      open={coaching}
+      onClose={() => setCoaching(false)}
+      draft={coach}
+      onDraftChange={onCoachChange}
+      onAdd={(seed, story) => onChange(addCoachStory(careerArc, seed, story), warnings)}
+    />
+  );
+  const talkLabel = coach.sessionId ? "Pick up where you left off" : "Talk it through";
 
   if (careerArc && hasContent(careerArc)) {
     const untitled = untitledStories(careerArc) + incompleteExtras(careerArc);
@@ -67,9 +86,14 @@ export function CareerArcScreen({
           {untitled > 0 ? (
             <Notice>Give every story, strength and recognition a title to continue.</Notice>
           ) : null}
-          <Button type="button" variant="quiet" onClick={() => setEditing(true)}>
-            Review and edit
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="quiet" onClick={() => setEditing(true)}>
+              Review and edit
+            </Button>
+            <Button type="button" variant="quiet" onClick={() => setCoaching(true)}>
+              {coach.sessionId ? talkLabel : "Add a story by talking it through"}
+            </Button>
+          </div>
         </div>
         <StepFooter
           onBack={onBack}
@@ -120,6 +144,7 @@ export function CareerArcScreen({
             </div>
           </div>
         </Drawer>
+        {coachPanel}
       </div>
     );
   }
@@ -148,6 +173,13 @@ export function CareerArcScreen({
               <span className="block font-sans-semibold">Make one from our template</span>
               <span className="mt-1 block text-sm text-ink-muted">
                 Download it, fill it in, upload it. About 15 minutes for two or three experiences.
+              </span>
+            </SelectableCard>
+            <SelectableCard selected={false} onClick={() => setCoaching(true)}>
+              <span className="block font-sans-semibold">{talkLabel}</span>
+              <span className="mt-1 block text-sm text-ink-muted">
+                Answer a few questions, one at a time, and we write your answers up as a story.
+                About five minutes for one story.
               </span>
             </SelectableCard>
           </div>
@@ -214,6 +246,7 @@ export function CareerArcScreen({
         </Button>
       </div>
       <p className="mt-3 text-xs text-ink-muted">You can add it any time from your profile.</p>
+      {coachPanel}
     </div>
   );
 }

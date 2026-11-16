@@ -8,6 +8,7 @@ import type {
   ProjectEntry,
   WorkHistoryEntry,
 } from "@/lib/api-client/client";
+import { EMPTY_ASSIST_DRAFT, type AssistDraft } from "@/lib/assist";
 import { hasContent } from "@/lib/career-arc";
 import {
   RESUME_FILLABLE_FIELDS,
@@ -41,6 +42,7 @@ export interface FormState {
   targetRoles: string[];
   careerArc: CareerArcDocument | null;
   careerArcWarnings: CareerArcWarning[];
+  coach: AssistDraft;
   fieldSource: FieldSourceMap;
 }
 
@@ -66,6 +68,7 @@ export const INITIAL_FORM: FormState = {
   targetRoles: [],
   careerArc: null,
   careerArcWarnings: [],
+  coach: EMPTY_ASSIST_DRAFT,
   fieldSource: {},
 };
 
